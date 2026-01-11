@@ -25,8 +25,16 @@ export async function createPaymentOrder(amountInput: number | string, payeeInpu
         return { success: false, error: 'payment.invalidAmount' }
     }
 
-    const fallbackPayee = process.env.ADMIN_USERS?.split(',')[0]?.trim()
-    const payeeRaw = (payeeInput || fallbackPayee || '').trim()
+    const adminUsers = (process.env.ADMIN_USERS || '')
+        .split(',')
+        .map((name) => name.trim())
+        .filter(Boolean)
+    const fallbackPayee = adminUsers[0] || null
+    const payeeCandidate = (payeeInput || '').trim()
+    const matchedAdmin = payeeCandidate
+        ? adminUsers.find((name) => name.toLowerCase() === payeeCandidate.toLowerCase())
+        : undefined
+    const payeeRaw = matchedAdmin || fallbackPayee || ''
     const payee = payeeRaw ? payeeRaw.slice(0, 80) : null
 
     const orderId = generateOrderId()
