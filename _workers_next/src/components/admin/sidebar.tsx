@@ -8,25 +8,37 @@ import { Package, CreditCard, LogOut, Megaphone, Star, Download, Tags, RotateCcw
 import { useI18n } from "@/lib/i18n/context"
 import { signOut } from "next-auth/react"
 
-export function AdminSidebar({ username }: { username: string }) {
-    const { t } = useI18n()
+interface NavLinkProps {
+    href: string
+    icon: ReactNode
+    label: string
+    closeOnNavigate?: boolean
+}
 
-    const NavLink = ({ href, icon, label, closeOnNavigate }: { href: string; icon: ReactNode; label: string; closeOnNavigate?: boolean }) => {
-        const link = closeOnNavigate ? (
-            <SheetClose asChild>
-                <Link href={href}>{icon}{label}</Link>
-            </SheetClose>
-        ) : (
+function NavLink({ href, icon, label, closeOnNavigate }: NavLinkProps) {
+    const link = closeOnNavigate ? (
+        <SheetClose asChild>
             <Link href={href}>{icon}{label}</Link>
-        )
-        return (
-            <Button variant="ghost" asChild className="justify-start">
-                {link}
-            </Button>
-        )
-    }
+        </SheetClose>
+    ) : (
+        <Link href={href}>{icon}{label}</Link>
+    )
+    return (
+        <Button variant="ghost" asChild className="justify-start">
+            {link}
+        </Button>
+    )
+}
 
-    const SidebarContent = ({ closeOnNavigate = false, showTitle = true }: { closeOnNavigate?: boolean; showTitle?: boolean }) => (
+interface SidebarContentProps {
+    closeOnNavigate?: boolean
+    showTitle?: boolean
+    username?: string
+    t: (key: string) => string
+}
+
+function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t }: SidebarContentProps) {
+    return (
         <>
             {showTitle && (
                 <div className="flex items-center gap-2 font-bold text-xl px-2 mb-6">
@@ -47,9 +59,11 @@ export function AdminSidebar({ username }: { username: string }) {
                 <NavLink href="/admin/notifications" icon={<Bell className="mr-2 h-4 w-4" />} label={t('admin.settings.notifications.title')} closeOnNavigate={closeOnNavigate} />
             </nav>
             <div className="mt-auto pt-6 border-t">
-                <div className="px-2 text-sm text-muted-foreground mb-4">
-                    {t('common.loggedInAs')} <br /> <strong className="text-foreground">{username}</strong>
-                </div>
+                {username && (
+                    <div className="px-2 text-sm text-muted-foreground mb-4">
+                        {t('common.loggedInAs')} <br /> <strong className="text-foreground">{username}</strong>
+                    </div>
+                )}
                 {closeOnNavigate ? (
                     <SheetClose asChild>
                         <Button
@@ -72,6 +86,10 @@ export function AdminSidebar({ username }: { username: string }) {
             </div>
         </>
     )
+}
+
+export function AdminSidebar({ username }: { username: string }) {
+    const { t } = useI18n()
 
     return (
         <>
@@ -88,7 +106,7 @@ export function AdminSidebar({ username }: { username: string }) {
                         </SheetTrigger>
                         <SheetContent side="left" className="w-4/5 max-w-sm">
                             <div className="flex flex-1 flex-col gap-4 px-4 pb-4 pt-6">
-                                <SidebarContent closeOnNavigate showTitle={false} />
+                                <SidebarContent closeOnNavigate showTitle={false} username={username} t={t} />
                             </div>
                         </SheetContent>
                     </Sheet>
@@ -97,7 +115,7 @@ export function AdminSidebar({ username }: { username: string }) {
 
             {/* Desktop sidebar */}
             <aside className="hidden md:flex md:flex-col md:w-64 bg-muted/40 border-r md:min-h-screen p-6 gap-4">
-                <SidebarContent />
+                <SidebarContent username={username} t={t} />
             </aside>
         </>
     )
